@@ -1,0 +1,30 @@
+{
+  "title": "Statistical analysis code for lower-than-expected peak expiratory flow and chronic lung disease recognition in HRS and CHARLS",
+  "description": "Statistical analysis code for parallel survey-weighted longitudinal analyses in the Health and Retirement Study and the China Health and Retirement Longitudinal Study. The archive contains code only and excludes manuscripts, participant-level data, derived data, aggregate results, and personal information.",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "wusmall1994-create"
+    }
+  ],
+  "version": "1.0.0",
+  "publication_date": "2026-08-31",
+  "access_right": "open",
+  "license": "MIT",
+  "keywords": [
+    "peak expiratory flow",
+    "chronic lung disease",
+    "Health and Retirement Study",
+    "China Health and Retirement Longitudinal Study",
+    "survey-weighted analysis",
+    "modified Poisson regression"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/wusmall1994-create/hrs-pef-statistical-analysis",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
+

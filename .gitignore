@@ -1,0 +1,45 @@
+# Restricted source and derived data
+data/
+inputs/
+outputs/
+*.dta
+*.sav
+*.sas7bdat
+*.xpt
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.json
+
+# Manuscripts, reports, figures, and rendered artifacts
+*.doc
+*.docx
+*.pdf
+*.rtf
+*.tex
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.svg
+
+# Credentials, environments, and local state
+.env
+.Renviron
+*.key
+*.pem
+*.token
+__pycache__/
+*.py[cod]
+.Rhistory
+.RData
+.Rproj.user/
+.DS_Store
+Thumbs.db
+*.log
+
+# Keep repository metadata JSON
+!.zenodo.json
+
