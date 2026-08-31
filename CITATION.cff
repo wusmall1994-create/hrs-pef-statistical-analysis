@@ -7,6 +7,7 @@ authors:
 version: 1.0.0
 date-released: 2026-08-31
 repository-code: "https://github.com/wusmall1994-create/hrs-pef-statistical-analysis"
+doi: "10.5281/zenodo.22207621"
 license: MIT
 keywords:
   - peak expiratory flow
@@ -15,4 +16,3 @@ keywords:
   - CHARLS
   - survey-weighted analysis
   - modified Poisson regression
-
