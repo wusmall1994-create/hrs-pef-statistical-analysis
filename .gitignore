@@ -43,3 +43,8 @@ Thumbs.db
 # Keep repository metadata JSON
 !.zenodo.json
 
+
+# Participant-level working objects from the revised analysis
+local_work/
+*.rds
+*.RDS

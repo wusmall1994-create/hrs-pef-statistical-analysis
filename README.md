@@ -1,5 +1,16 @@
 # HRS–CHARLS peak expiratory flow statistical analysis
 
+## Current analysis revision — 10 September 2026
+
+The analysis for **Peak expiratory flow and subsequent self-reported chronic lung
+disease in two ageing cohorts** is in
+[`respiratory_research_20260910/`](respiratory_research_20260910/README.md).
+It includes grip and healthcare adjustment, smoking-intensity adjustment,
+repeated cluster-grouped prediction validation, and associated sensitivity analyses.
+Use that directory's instructions to reproduce the revised manuscript.
+The earlier root-level pipeline remains available below. The Zenodo DOI below
+archives version 1.0.0 only; it does not identify the new analysis revision.
+
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22207621.svg)](https://doi.org/10.5281/zenodo.22207621)
 
 This repository contains only the statistical analysis code used to examine whether lower-than-expected baseline peak expiratory flow (PEF) preceded subsequent physician diagnosis of chronic lung disease in the Health and Retirement Study (HRS) and the China Health and Retirement Longitudinal Study (CHARLS).
