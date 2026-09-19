@@ -11,7 +11,7 @@ Use that directory's instructions to reproduce the revised manuscript.
 The earlier root-level pipeline remains available below. The Zenodo DOI below
 archives version 1.0.0 only; it does not identify the new analysis revision.
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22207621.svg)](https://doi.org/10.5281/zenodo.22207621)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22846973.svg)](https://doi.org/10.5281/zenodo.22846973)
 
 This repository contains only the statistical analysis code used to examine whether lower-than-expected baseline peak expiratory flow (PEF) preceded subsequent physician diagnosis of chronic lung disease in the Health and Retirement Study (HRS) and the China Health and Retirement Longitudinal Study (CHARLS).
 
@@ -90,4 +90,4 @@ Generated participant-level analytic files, statistical results, and figures are
 
 ## Licence and citation
 
-The code is released under the MIT License. Version 1.0.0 is archived at [doi:10.5281/zenodo.22207621](https://doi.org/10.5281/zenodo.22207621). Citation metadata are provided in `CITATION.cff` and `.zenodo.json`.
+The code is released under the MIT License. Version 1.1.0 is archived at [doi:10.5281/zenodo.22846973](https://doi.org/10.5281/zenodo.22846973). Citation metadata are provided in `CITATION.cff` and `.zenodo.json`.
