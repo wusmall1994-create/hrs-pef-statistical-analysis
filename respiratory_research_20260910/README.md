@@ -35,6 +35,8 @@ Association references use all eligible locked baselines. Prediction references 
 
 The sensitivity exercise for misclassification is deterministic and assumption based. Inadmissible corrected risks are retained and marked. Repeat ranges for validation are not confidence intervals. The analyses are post hoc upgrades; see analysis_amendment.md.
 
+The BMC Pulmonary Medicine revision also excludes CHARLS participants reporting asthma at follow-up, quantifies the weighted fraction of subsequent reports arising in the low-PEF group, and exports event counts above the weighted 95th percentile of the spline exposure distribution. These outputs are `charls_followup_asthma_exclusions.csv`, `case_concentration.csv`, and `spline_tail_diagnostics.csv`.
+
 ## Version and execution helper
 
 This directory contains the 10 September 2026 analysis revision. The root-level

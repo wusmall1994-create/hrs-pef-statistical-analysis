@@ -73,7 +73,7 @@ hd.to_csv(out/'HRS_baseline.csv',index=False)
 
 cpath=next((root/'CHARLS date/Harmonized CHARLS/H_CHARLS_D_Data').rglob('*.dta'))
 cs=['agey','puff','mheight','mbmi','lunge','asthmae','smokev','smoken','smokef','hibpe','diabe','hearte','stroke','cancre','cesd10','wtrespb','lgrip','rgrip','doctor1m','hosp1y','puff1','puff2','puff3','puffeff']
-cols=['ID','communityID','ragender','raeduc_c','radyear','r4lunge','r4iwstat','inw4']
+cols=['ID','communityID','ragender','raeduc_c','radyear','r4lunge','r4asthmae','r4iwstat','inw4']
 for w in [2,3]:cols += [f'inw{w}',f'h{w}rural']+[f'r{w}{s}' for s in cs]
 c=read(cpath,cols)
 def charls_frame(w):
@@ -84,6 +84,7 @@ def charls_frame(w):
  sortedvals=np.sort(np.where(np.isfinite(vals),vals,-np.inf),axis=1)
  d['repeat40']=((np.isfinite(vals).sum(axis=1)>=2)&((sortedvals[:,-1]-sortedvals[:,-2])<=40)).astype(int)
  obs=c.inw4.eq(1)&bin01(c.r4lunge).notna();d['observed']=obs.astype(int);d['event']=bin01(c.r4lunge).where(obs)
+ d['followup_asthma']=bin01(c.r4asthmae).where(c.inw4.eq(1))
  d['death']=((~obs)&(c.r4iwstat.isin([5,6])|c.radyear.between(2015,2018))).astype(int)
  d['mid_clear']=c.inw3.eq(1)&bin01(c.r3lunge).eq(0)
  return clean(d)

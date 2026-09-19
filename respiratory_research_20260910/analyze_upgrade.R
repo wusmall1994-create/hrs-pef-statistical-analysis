@@ -31,7 +31,7 @@ marginal<-function(obj){fit<-obj$fit;d<-obj$data;w<-d$weight/sum(d$weight);b<-co
  vv<-function(g)sqrt(drop(t(g)%*%V%*%g));se0<-vv(grad[[1]]);se1<-vv(grad[[2]]);rd<-risks[[2]]-risks[[1]];serd<-vv(grad[[2]]-grad[[1]])
  data.frame(cohort=d$cohort[1],n=nrow(d),events=sum(d$event),risk0=risks[[1]],risk0_lo=risks[[1]]-1.96*se0,risk0_hi=risks[[1]]+1.96*se0,risk1=risks[[2]],risk1_lo=risks[[2]]-1.96*se1,risk1_hi=risks[[2]]+1.96*se1,rd=rd,rd_lo=rd-1.96*serd,rd_hi=rd+1.96*serd)
 }
-rrs<-risks<-flows<-missing<-states<-subgroups<-splines<-spline_tests<-table1<-mi_counts<-data.frame();data_list<-list()
+rrs<-risks<-flows<-missing<-states<-subgroups<-splines<-spline_tests<-table1<-mi_counts<-case_concentration<-tail_diagnostics<-asthma_exclusions<-data.frame();data_list<-list()
 for(cohort in c('CHARLS','HRS')){
  cat('START',cohort,'\n');flush.console()
  all<-prepare(readone(paste0(cohort,'_baseline')));refs<-ref_fit(all);all<-ref_apply(all,refs);saveRDS(refs,file.path(out,paste0(cohort,'_reference.rds')))
@@ -57,6 +57,9 @@ for(cohort in c('CHARLS','HRS')){
  if(cohort=='CHARLS'){
   for(v in c('full_effort','repeat40'))rrs<-rbind(rrs,fitrr(d[d[[v]]==1,],cohort,v)$row)
   ref<-d;ref$low<-as.integer(ifelse(ref$sex==1,ref$pef<138.64,ref$pef<91.94));rrs<-rbind(rrs,fitrr(ref,cohort,'Published Ji threshold')$row)
+  no_asthma<-d[is.na(d$followup_asthma)|d$followup_asthma!=1,]
+  rrs<-rbind(rrs,fitrr(no_asthma,cohort,'Exclude follow-up reported asthma')$row)
+  asthma_exclusions<-rbind(asthma_exclusions,data.frame(cohort=cohort,excluded=sum(d$followup_asthma==1,na.rm=TRUE),excluded_events=sum(d$event==1&d$followup_asthma==1,na.rm=TRUE),followup_asthma_missing=sum(is.na(d$followup_asthma))))
   lall<-prepare(readone('CHARLS_2013_baseline'));lall<-ref_apply(lall,ref_fit(lall));lag<-lall[lall$observed==1 & lall$mid_clear %in% c(TRUE,'True','TRUE',1),];rrs<-rbind(rrs,fitrr(lag,cohort,'2013 PEF 2015 clear 2018 outcome')$row)
  }else{
   ref<-d[d$age>=65,];pred<-ifelse(ref$sex==1,-130.15+5.67*ref$height_m*100-5.66*ref$age,213.41+2.80*ref$height_m*100-4.91*ref$age);sdv<-ifelse(ref$sex==1,118.31,73.86);ref$low<-as.integer((ref$pef-pred)/sdv< -1.645);rrs<-rbind(rrs,fitrr(ref,cohort,'Published Donahue age 65 to 80')$row)
@@ -79,6 +82,8 @@ for(cohort in c('CHARLS','HRS')){
  }
  # Natural cubic spline, equivalent restricted cubic shape with four knots.
  ks<-as.numeric(svyquantile(~z,des(cc),quantiles=c(.05,.35,.65,.95),ci=FALSE)[[1]])
+ tail_cut<-as.numeric(svyquantile(~z,des(cc),quantiles=.95,ci=FALSE)[[1]])
+ tail_diagnostics<-rbind(tail_diagnostics,data.frame(cohort=cohort,tail='Above weighted 95th percentile',cut=tail_cut,n=sum(cc$z>tail_cut),events=sum(cc$event[cc$z>tail_cut]),weighted_event_risk=weighted.mean(cc$event[cc$z>tail_cut],cc$weight[cc$z>tail_cut])))
  bas<-splines::ns(cc$z,knots=ks[2:3],Boundary.knots=ks[c(1,4)]);cc$s1<-bas[,1];cc$s2<-bas[,2];cc$s3<-bas[,3]
  sf<-svyglm(as.formula(paste('event~s1+s2+s3+',paste(cv,collapse='+'))),des(cc),family=quasipoisson('log'));pv<-regTermTest(sf,~s1+s2+s3)$p
  xs<-seq(quantile(cc$z,.01),quantile(cc$z,.99),length.out=150);bb<-predict(bas,xs);b0<-predict(bas,0);delta<-sweep(bb,2,b0[1,],'-');bet<-coef(sf)[c('s1','s2','s3')];VV<-vcov(sf)[c('s1','s2','s3'),c('s1','s2','s3')];eta<-drop(delta%*%bet);se<-sqrt(rowSums((delta%*%VV)*delta))
@@ -88,6 +93,7 @@ for(cohort in c('CHARLS','HRS')){
   for(v in c('age','pef','height_m','bmi','grip')){m<-as.numeric(svymean(as.formula(paste0('~',v)),dd,na.rm=TRUE));sdv<-sqrt(as.numeric(svyvar(as.formula(paste0('~',v)),dd,na.rm=TRUE)));table1<-rbind(table1,data.frame(cohort=cohort,group=g,variable=v,value=m,sd=sdv,n=nrow(z)))}
   for(v in c('sex==2','smoking=="current"','doctor==1','hospital==1')){m<-as.numeric(svymean(as.formula(paste0('~I(as.numeric(',v,'))')),dd,na.rm=TRUE));table1<-rbind(table1,data.frame(cohort=cohort,group=g,variable=v,value=m,sd=NA,n=nrow(z)))}
  }
+ case_concentration<-rbind(case_concentration,data.frame(cohort=cohort,analysis_n=nrow(cc),events=sum(cc$event),weighted_low_prevalence=sum(cc$weight*cc$low)/sum(cc$weight),weighted_event_fraction_in_low=sum(cc$weight*cc$event*cc$low)/sum(cc$weight*cc$event)))
  saveRDS(data_list[[cohort]],file.path(out,paste0(cohort,'_analysis_local.rds')))
  cat('MI START',cohort,'\n');flush.console()
  vars<-unique(c('event','low','lower_sd',all.vars(as.formula(paste('~',paste(cv,collapse='+')))),'weight','psu','stratum'))
@@ -102,7 +108,7 @@ for(cohort in c('CHARLS','HRS')){
   rrs<-rbind(rrs,data.frame(cohort=cohort,analysis='MI20',exposure=x,n=nrow(dat),events=sum(dat$event),rr=exp(b),lo=exp(b-crit*se),hi=exp(b+crit*se),p=2*pt(-abs(b/se),df)))
  }
  cat('DONE',cohort,'\n');flush.console()
- writeout(rrs,'associations');writeout(risks,'absolute_risks');writeout(flows,'analysis_flow');writeout(missing,'missingness');writeout(states,'followup_states');writeout(subgroups,'subgroups');writeout(splines,'spline_curves');writeout(spline_tests,'spline_tests');writeout(table1,'table1');writeout(mi_counts,'mi_actual_counts')
+ writeout(rrs,'associations');writeout(risks,'absolute_risks');writeout(flows,'analysis_flow');writeout(missing,'missingness');writeout(states,'followup_states');writeout(subgroups,'subgroups');writeout(splines,'spline_curves');writeout(spline_tests,'spline_tests');writeout(table1,'table1');writeout(mi_counts,'mi_actual_counts');writeout(case_concentration,'case_concentration');writeout(tail_diagnostics,'spline_tail_diagnostics');writeout(asthma_exclusions,'charls_followup_asthma_exclusions')
 }
 # QBA retains all scenarios, including incompatible corrected probabilities.
 qba<-data.frame()
