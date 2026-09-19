@@ -4,8 +4,8 @@ title: "Statistical analysis code for lower-than-expected peak expiratory flow a
 type: software
 authors:
   - family-names: "wusmall1994-create"
-version: 1.0.0
-date-released: 2026-08-31
+version: 1.1.0
+date-released: 2026-09-19
 repository-code: "https://github.com/wusmall1994-create/hrs-pef-statistical-analysis"
 doi: "10.5281/zenodo.22207621"
 license: MIT
