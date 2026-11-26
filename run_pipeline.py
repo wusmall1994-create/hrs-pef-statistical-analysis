@@ -1,78 +1,48 @@
-from __future__ import annotations
-
-import argparse
-import os
+"""Run the PEF cohort analyses in a private working directory."""
 from pathlib import Path
-import shutil
+import argparse
 import subprocess
 import sys
 
 
-ROOT = Path(__file__).resolve().parent
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Run the HRS–CHARLS PEF statistical analysis pipeline."
-    )
-    parser.add_argument("--hrs-data", required=True, type=Path, help="Path to the RAND HRS Stata file.")
-    parser.add_argument(
-        "--charls-data", required=True, type=Path, help="Path to the Harmonized CHARLS Stata file."
-    )
-    parser.add_argument("--skip-figures", action="store_true", help="Run analyses without figure scripts.")
-    return parser.parse_args()
-
-
-def run(command: list[str], env: dict[str, str]) -> None:
-    print(f"Running: {' '.join(command)}")
-    subprocess.run(command, cwd=ROOT, env=env, check=True)
-
-
-def main() -> None:
-    args = parse_args()
-    hrs_data = args.hrs_data.expanduser().resolve()
-    charls_data = args.charls_data.expanduser().resolve()
-    for path, label in ((hrs_data, "HRS"), (charls_data, "CHARLS")):
-        if not path.is_file():
-            raise FileNotFoundError(f"{label} source file not found: {path}")
-
-    rscript = shutil.which("Rscript")
-    if rscript is None:
-        raise RuntimeError("Rscript was not found on PATH.")
-
-    env = os.environ.copy()
-    env.update(
-        {
-            "PEF_PROJECT_ROOT": str(ROOT),
-            "HRS_DATA_FILE": str(hrs_data),
-            "CHARLS_DATA_FILE": str(charls_data),
-        }
-    )
-
-    python = sys.executable
-    steps = [
-        [python, "code/01_prepare_hrs.py"],
-        [python, "code/02_prepare_charls.py"],
-        [rscript, "code/03_primary_analysis.R"],
-        [python, "code/04_build_sensitivity_datasets.py"],
-        [rscript, "code/05_sensitivity_analysis.R"],
-        [rscript, "code/06_absolute_risk_spline_analysis.R"],
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--data-root', required=True, type=Path)
+    parser.add_argument('--work-dir', required=True, type=Path)
+    parser.add_argument('--rscript', default='Rscript')
+    parser.add_argument('--skip-figures', action='store_true')
+    parser.add_argument('--dry-run', action='store_true')
+    args = parser.parse_args()
+    scripts = Path(__file__).resolve().parent
+    root = args.data_root.resolve()
+    work = args.work_dir.resolve()
+    if not args.dry_run:
+        required = [root/'CHARLS date/Harmonized CHARLS/H_CHARLS_D_Data/H_CHARLS_D_Data.dta']
+        if not all(p.is_file() for p in required):
+            parser.error('Missing Harmonized CHARLS file; see README input layout.')
+        if not list((root/'HRS data/01_rand_longitudinal').rglob('randhrs1992_2022v1.dta')):
+            parser.error('Missing RAND HRS longitudinal file; see README input layout.')
+        for year in [2006, 2010, 2014, 2018]:
+            files = list((root/f'HRS data/02_rand_fat/{year}').rglob('*.dta'))
+            if len(files) != 1:
+                parser.error(f'Expected exactly one RAND FAT Stata file for {year}; found {len(files)}.')
+        work.mkdir(parents=True, exist_ok=True)
+    commands = [
+        [sys.executable, str(scripts/'prepare.py'), '--data-root', str(root), '--out', str(work/'data')],
+        [args.rscript, str(scripts/'associations.R'), str(work/'data'), str(work/'results')],
+        [args.rscript, str(scripts/'prediction.R'), str(work/'results')],
+        [sys.executable, str(scripts/'measurement.py'), str(root), str(work/'data')],
+        [args.rscript, str(scripts/'sensitivity.R'), str(work/'data'), str(work/'results')],
+        [args.rscript, str(scripts/'validate.R'), str(work/'results')],
+        [sys.executable, str(scripts/'check_coefficients.py'), str(work/'results')],
     ]
     if not args.skip_figures:
-        steps.extend(
-            [
-                [rscript, "code/07_create_main_forest.R"],
-                [rscript, "code/08_create_sensitivity_forest.R"],
-                [rscript, "code/09_create_clinical_value_figures.R"],
-            ]
-        )
-
-    for command in steps:
-        run(command, env)
-
-    print("Pipeline completed. Generated files are under outputs/ and are excluded from Git.")
+        commands.append([args.rscript, str(scripts/'figures.R'), str(work/'results'), str(work/'figures')])
+    for command in commands:
+        print(subprocess.list2cmdline(command), flush=True)
+        if not args.dry_run:
+            subprocess.run(command, check=True)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
-

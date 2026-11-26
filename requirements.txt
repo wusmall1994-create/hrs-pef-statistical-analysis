@@ -1,6 +1,2 @@
 numpy
 pandas
-patsy
-scipy
-statsmodels
-

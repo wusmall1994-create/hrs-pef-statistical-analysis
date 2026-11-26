@@ -3,4 +3,3 @@ missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TR
 if (length(missing)) {
   install.packages(missing, repos = "https://cloud.r-project.org")
 }
-

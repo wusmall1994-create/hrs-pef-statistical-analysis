@@ -44,7 +44,7 @@ Thumbs.db
 !.zenodo.json
 
 
-# Participant-level working objects from the revised analysis
+# Participant-level working objects from the analysis
 local_work/
 *.rds
 *.RDS

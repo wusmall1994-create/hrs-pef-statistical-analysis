@@ -23,7 +23,7 @@ for(cohort in c('CHARLS','HRS')){
    for(j in 1:2){m<-metrics(d$event,preds[,j,rep],d$weight);res<-rbind(res,data.frame(cohort=cohort,suite=suite,repeat_id=rep,model=if(j==1)'Without PEF' else 'With PEF',n=nrow(d),events=sum(d$event),auc=unname(m[1]),brier=unname(m[2]),calibration_intercept=unname(m[3]),calibration_slope=unname(m[4])))}
    cat('CV',cohort,suite,rep,'done\n');flush.console()
   }
-  stopifnot(all(is.finite(preds)))
+  stopifnot(all(is.finite(preds)));saveRDS(list(d=d,p=preds),file.path(out,paste0(cohort,suite,".rds")))
   # Calibration points use averaged held-out predictions, not in-sample fits.
   for(j in 1:2){p<-rowMeans(preds[,j,]);ord<-order(p);grp<-integer(length(p));grp[ord]<-pmin(10,ceiling(seq_along(ord)/length(ord)*10))
    for(g in 1:10){ix<-grp==g;calpoints<-rbind(calpoints,data.frame(cohort=cohort,suite=suite,model=if(j==1)'Without PEF' else 'With PEF',bin=g,n=sum(ix),events=sum(d$event[ix]),predicted=weighted.mean(p[ix],d$weight[ix]),observed=weighted.mean(d$event[ix],d$weight[ix])))}
