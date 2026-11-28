@@ -33,6 +33,7 @@ def main():
         [args.rscript, str(scripts/'prediction.R'), str(work/'results')],
         [sys.executable, str(scripts/'measurement.py'), str(root), str(work/'data')],
         [args.rscript, str(scripts/'sensitivity.R'), str(work/'data'), str(work/'results')],
+        [args.rscript, str(scripts/'prediction_bootstrap.R'), str(work/'results'), str(work/'results')],
         [args.rscript, str(scripts/'validate.R'), str(work/'results')],
         [sys.executable, str(scripts/'check_coefficients.py'), str(work/'results')],
     ]

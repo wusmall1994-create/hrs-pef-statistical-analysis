@@ -1,11 +1,11 @@
-cff-version: 1.2.0
+cff-version: 1.3.0
 message: "If you use this software, please cite the archived release."
 title: "Statistical analysis code for lower-than-expected peak expiratory flow and chronic lung disease recognition in HRS and CHARLS"
 type: software
 authors:
   - family-names: "wusmall1994-create"
-version: 1.2.0
-date-released: 2026-11-26
+version: 1.3.0
+date-released: 2026-11-28
 repository-code: "https://github.com/wusmall1994-create/hrs-pef-statistical-analysis"
 license: MIT
 keywords:

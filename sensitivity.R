@@ -13,7 +13,7 @@ for(co in c("CHARLS","HRS")){
  for(s in names(refs)){v=refs[[s]];write.csv(data.frame(term=names(coef(v$fit)),coef=coef(v$fit),cut=as.numeric(v$cut),sd=v$sd),file.path(out,paste0(co,s,"ref.csv")),row.names=F)}
  wr=lapply(split(a,a$sex),function(g){m=lm(formula(refs[[1]]$fit),g,weights=weight);r=resid(m);i=order(r);list(fit=m,cut=r[i][which(cumsum(g$weight[i])>=.2*sum(g$weight))[1]],sd=sqrt(weighted.mean(r^2,g$weight)))})
  z=ref_apply(a,wr);rows[[co]] <- fitrr(z[z$observed==1,],co,"Weighted reference")$row
- if(co=="CHARLS"){b=prepare(readone("CHARLS_2013_baseline"));b=ref_apply(b,ref_fit(b));z=merge(o$observed,b[,c("id","low")],by="id",suffixes=c("",".early"));z$pattern=factor(z$low+2*z$low.early,levels=0:3);fit=svyglm(as.formula(paste("event~pattern+",paste(covars(co),collapse="+"))),des(complete_for(z,c("pattern",covars(co)))),family=quasipoisson("log"));counts <- table(model.frame(fit)$pattern)
+ if(co=="CHARLS"){b=prepare(readone("CHARLS_2013_baseline"));b=ref_apply(b,ref_fit(b));z=merge(o$observed,b[,c("id","low")],by="id",suffixes=c("",".early"));z$pattern=factor(z$low+2*z$low.early,levels=0:3);fit=svyglm(as.formula(paste("event~pattern+",paste(covars(co),collapse="+"))),des(complete_for(z,c("pattern",covars(co)))),family=quasipoisson("log"));counts <- table(model.frame(fit)$pattern); z_history <- z
  estimates <- exp(cbind(coef(fit),confint(fit)))[2:4,,drop=FALSE]
  history <- data.frame(pattern=c("Neither","2015 only","2013 only","Both"),
                        n=as.integer(counts),rr=c(1,estimates[,1]),
@@ -35,6 +35,7 @@ write.csv(intervals,file.path(out,"paired_intervals.csv"),row.names=FALSE)
 hrs <- readRDS(file.path(out,"HRS_analysis_local.rds"))$observed
 physical <- merge(hrs,read.csv(file.path(input,"pm.csv")),by=c("id","wave"))
 physical <- subset(physical,pm>0)
+physical$respondent_weight <- physical$weight
 physical$weight <- physical$pm
 fit <- fitrr(physical,"HRS","Physical measure weights")
 rows$physical <- fit$row
@@ -43,3 +44,16 @@ quality <- merge(hrs,read.csv(file.path(input,"qual.csv")),by=c("id","wave"))
 rows$effort <- fitrr(subset(quality,eff==1),"HRS","Full effort")$row
 rows$repeatability <- fitrr(subset(quality,rep=="True"),"HRS","Repeatability")$row
 write.csv(do.call(rbind,rows),file.path(out,"measurement_sensitivity.csv"),row.names=FALSE)
+
+# Direct contrasts within a common analysis sample.
+history_sample <- complete_for(z_history, c("pattern", covars("CHARLS")))
+history_sample$pattern <- relevel(history_sample$pattern, ref = "1")
+history_fit <- svyglm(reformulate(c("pattern", covars("CHARLS")), "event"),
+                      des(history_sample), family = quasipoisson("log"))
+history_contrast <- exp(cbind(coef(history_fit), confint(history_fit)))["pattern3", ]
+write.csv(as.data.frame(t(history_contrast)), file.path(out, "persistent_low_contrast.csv"),
+          row.names = FALSE)
+
+physical$weight <- physical$respondent_weight
+respondent_fit <- fitrr(physical, "HRS", "Respondent weights in physical-measure sample")
+write.csv(respondent_fit$row, file.path(out, "matched_respondent_weight.csv"), row.names = FALSE)
